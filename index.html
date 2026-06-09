@@ -1,197 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1F4E79">
+<link rel="manifest" href="data:application/json,{%22name%22:%22Royal%20Bodies%20%26%20Repair%20Timeclock%22,%22short_name%22:%22Timeclock%22,%22start_url%22:%22.%22,%22display%22:%22standalone%22,%22background_color%22:%22%231F4E79%22,%22theme_color%22:%22%231F4E79%22,%22icons%22:[{%22src%22:%22data:image/svg+xml,%253Csvg%2520xmlns%253D%2527http%253A%252F%252Fwww.w3.org%252F2000%252Fsvg%2527%2520viewBox%253D%25270%25200%252096%252096%2527%253E%253Crect%2520width%253D%252796%252796%2527%2520fill%253D%2527%25231F4E79%2527%2520rx%253D%252716%2527%252F%253E%253Ccircle%2520cx%253D%252748%2527%2520cy%253D%252748%2527%2520r%253D%252726%2527%2520stroke%253D%2527white%2527%2520stroke-width%253D%25274%2527%2520fill%253D%2527none%2527%252F%253E%253Cline%2520x1%253D%252748%2527%2520y1%253D%252728%2527%2520x2%253D%252748%2527%2520y2%253D%252750%2527%2520stroke%253D%2527white%2527%2520stroke-width%253D%25274%2527%2520stroke-linecap%253D%2527round%2527%252F%253E%253Cline%2520x1%253D%252748%2527%2520y1%253D%252750%2527%2520x2%253D%252760%2527%2520y2%253D%252758%2527%2520stroke%253D%2527white%2527%2520stroke-width%253D%25274%2527%2520stroke-linecap%253D%2527round%2527%252F%253E%253C%252Fsvg%253E%22,%22sizes%22:%2296x96%22,%22type%22:%22image/svg+xml%22}]}">
+<title>Royal Bodies & Repair Timeclock</title>
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --blue:#1F4E79;--blue-mid:#2E75B6;--blue-light:#D6E4F0;--blue-pale:#EBF3FA;
-  --green:#1a7a4a;--green-light:#d4edda;--red:#c0392b;--red-light:#fce8e6;
-  --amber:#b45309;--amber-light:#fef3c7;
-}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--color-background-tertiary);color:var(--color-text-primary);min-height:100vh}
-.app{display:flex;flex-direction:column;min-height:100vh;max-width:760px;margin:0 auto;background:var(--color-background-primary);box-shadow:0 0 0 0.5px var(--color-border-tertiary)}
-header{background:var(--blue);color:white;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
-header h1{font-size:16px;font-weight:500;letter-spacing:0.2px}
-.live-clock{font-size:12px;opacity:0.8;margin-top:2px;font-variant-numeric:tabular-nums}
-.admin-btn{background:rgba(255,255,255,0.15);border:0.5px solid rgba(255,255,255,0.3);color:white;border-radius:var(--border-radius-md);padding:7px 12px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:5px}
-.admin-btn:hover{background:rgba(255,255,255,0.25)}
-nav{background:var(--color-background-primary);border-bottom:0.5px solid var(--color-border-tertiary);display:flex;flex-shrink:0}
-nav button{flex:1;padding:11px 6px;border:none;background:none;font-size:12px;font-weight:500;color:var(--color-text-secondary);cursor:pointer;border-bottom:2px solid transparent;transition:all 0.15s}
-nav button.active{color:var(--blue-mid);border-bottom-color:var(--blue-mid)}
-nav button:hover:not(.active){color:var(--color-text-primary)}
-main{flex:1;padding:18px;overflow-y:auto}
-.page{display:none}.page.active{display:block}
-.card{background:var(--color-background-primary);border-radius:var(--border-radius-lg);border:0.5px solid var(--color-border-tertiary);padding:18px;margin-bottom:14px}
-.card h2{font-size:14px;font-weight:500;color:var(--blue);margin-bottom:14px;display:flex;align-items:center;gap:7px}
-.tap-btn{width:100%;padding:32px 20px;border-radius:var(--border-radius-lg);border:1.5px dashed var(--blue-mid);background:var(--blue-pale);color:var(--blue);font-size:18px;font-weight:500;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;transition:all 0.15s}
-.tap-btn:active{transform:scale(0.98)}
-.tap-btn .icon{font-size:44px}
-.tap-btn .sub{font-size:13px;font-weight:400;color:var(--blue-mid)}
-.tap-btn.scanning{border-style:solid;animation:pulse 1.2s ease-in-out infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.6}}
-.status-banner{border-radius:var(--border-radius-md);padding:12px 14px;font-size:14px;font-weight:500;margin-top:12px;display:none}
-.status-banner.show{display:block}
-.status-banner.success{background:var(--green-light);color:var(--green)}
-.status-banner.error{background:var(--red-light);color:var(--red)}
-.status-banner.info{background:var(--amber-light);color:var(--amber)}
-.emp-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
-.emp-card{background:var(--color-background-secondary);border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-tertiary);padding:12px;text-align:center}
-.emp-avatar{width:38px;height:38px;border-radius:50%;background:var(--blue-light);color:var(--blue);font-size:12px;font-weight:500;display:flex;align-items:center;justify-content:center;margin:0 auto 8px}
-.emp-name{font-size:12px;font-weight:500;color:var(--color-text-primary);line-height:1.3}
-.emp-badge{display:inline-block;margin-top:6px;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500}
-.emp-badge.in{background:var(--green-light);color:var(--green)}
-.emp-badge.out{background:var(--color-background-secondary);color:var(--color-text-secondary);border:0.5px solid var(--color-border-tertiary)}
-.log-list{max-height:320px;overflow-y:auto}
-.log-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:0.5px solid var(--color-border-tertiary);font-size:13px;gap:8px;flex-wrap:wrap}
-.log-item:last-child{border-bottom:none}
-.log-name{font-weight:500}
-.log-time{color:var(--color-text-secondary);font-variant-numeric:tabular-nums}
-.log-badge{padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500}
-.log-badge.in{background:var(--green-light);color:var(--green)}
-.log-badge.out{background:var(--red-light);color:var(--red)}
-.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);font-size:12px;font-weight:500;cursor:pointer;color:var(--color-text-primary);transition:background 0.12s}
-.btn:hover{background:var(--color-background-secondary)}
-.btn.primary{background:var(--blue);color:white;border-color:var(--blue)}
-.btn.primary:hover{background:var(--blue-mid)}
-.btn.danger{color:var(--red);border-color:#f5b7b1}
-.btn.danger:hover{background:var(--red-light)}
-.btn.sm{padding:4px 9px;font-size:11px}
-.week-row{display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
-.week-row label{font-size:13px;color:var(--color-text-secondary)}
-input[type=date],input[type=time]{border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:6px 10px;font-size:13px;background:var(--color-background-primary);color:var(--color-text-primary)}
-.report-table{width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed}
-.report-table th{text-align:left;padding:8px 8px;background:var(--blue);color:white;font-weight:500;font-size:11px}
-.report-table th:first-child{border-radius:6px 0 0 0}
-.report-table th:last-child{border-radius:0 6px 0 0}
-.report-table td{padding:7px 8px;border-bottom:0.5px solid var(--color-border-tertiary)}
-.report-table tr:last-child td{border-bottom:none}
-.report-table tr:nth-child(even) td{background:var(--color-background-secondary)}
-.report-table .total-row td{font-weight:500;background:var(--blue-pale);color:var(--blue)}
-.summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:10px;margin-bottom:14px}
-.summary-card{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:12px;text-align:center}
-.summary-card .val{font-size:22px;font-weight:500;color:var(--blue)}
-.summary-card .lbl{font-size:11px;color:var(--color-text-secondary);margin-top:2px}
-.export-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
-.setup-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--color-border-tertiary);flex-wrap:wrap}
-.setup-row:last-child{border-bottom:none}
-.setup-name{flex:1;font-size:13px;font-weight:500;min-width:130px}
-.setup-nfc{font-size:11px;color:var(--color-text-secondary);font-family:monospace;flex:1;min-width:100px}
-.setup-nfc.assigned{color:var(--green);font-weight:500}
-.overlay{display:none;position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.45);z-index:50;align-items:flex-start;justify-content:center;padding:30px 16px;overflow-y:auto;min-height:100%}
-.overlay.show{display:flex}
-.modal{background:var(--color-background-primary);border-radius:var(--border-radius-lg);padding:22px;width:100%;max-width:400px;border:0.5px solid var(--color-border-tertiary)}
-.modal h3{font-size:15px;font-weight:500;margin-bottom:8px}
-.modal p{font-size:13px;color:var(--color-text-secondary);margin-bottom:14px;line-height:1.5}
-.modal-btns{display:flex;gap:10px;justify-content:flex-end}
-.nfc-area{border:1.5px dashed var(--blue-mid);border-radius:var(--border-radius-lg);padding:28px;text-align:center;background:var(--blue-pale);margin:14px 0}
-.nfc-area.scanning{animation:pulse 1.2s ease-in-out infinite}
-.nfc-icon{font-size:46px;display:block;margin-bottom:8px}
-.nfc-area p{font-size:13px;color:var(--blue);font-weight:500}
-.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:240px;margin:0 auto 14px}
-.pin-btn{padding:14px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);font-size:18px;font-weight:500;cursor:pointer;color:var(--color-text-primary)}
-.pin-btn:active{background:var(--color-background-secondary)}
-.pin-display{text-align:center;font-size:26px;letter-spacing:8px;color:var(--blue);margin-bottom:14px;height:38px}
-input[type=password]{border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:8px 12px;font-size:14px;background:var(--color-background-primary);color:var(--color-text-primary);width:160px}
-.danger-zone h2{color:var(--red)}
-</style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
 
-<div class="app" id="app" style="position:relative">
+  :root {
+    --blue: #1F4E79;
+    --blue-mid: #2E75B6;
+    --blue-light: #D6E4F0;
+    --blue-pale: #EBF3FA;
+    --green: #1a7a4a;
+    --green-light: #d4edda;
+    --red: #c0392b;
+    --red-light: #fce8e6;
+    --amber: #b45309;
+    --amber-light: #fef3c7;
+    --gray-100: #f5f5f5;
+    --gray-200: #e5e5e5;
+    --gray-400: #9ca3af;
+    --gray-700: #374151;
+    --gray-900: #111827;
+    --white: #ffffff;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--gray-100);
+    color: var(--gray-900);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  header {
+    background: var(--blue);
+    color: white;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  header h1 { font-size: 18px; font-weight: 600; letter-spacing: 0.3px; }
+  header .clock { font-size: 14px; opacity: 0.85; font-variant-numeric: tabular-nums; }
+
+  nav {
+    background: var(--white);
+    border-bottom: 1px solid var(--gray-200);
+    display: flex;
+  }
+  nav button {
+    flex: 1;
+    padding: 12px 8px;
+    border: none;
+    background: none;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--gray-400);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.15s;
+  }
+  nav button.active {
+    color: var(--blue-mid);
+    border-bottom-color: var(--blue-mid);
+  }
+
+  main { flex: 1; padding: 20px; max-width: 700px; margin: 0 auto; width: 100%; }
+
+  .page { display: none; }
+  .page.active { display: block; }
+
+  .card {
+    background: var(--white);
+    border-radius: var(--radius);
+    border: 1px solid var(--gray-200);
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+
+  .card h2 { font-size: 15px; font-weight: 600; color: var(--blue); margin-bottom: 14px; }
+
+  .tap-btn {
+    width: 100%;
+    padding: 28px 20px;
+    border-radius: var(--radius);
+    border: 2px dashed var(--blue-mid);
+    background: var(--blue-pale);
+    color: var(--blue);
+    font-size: 20px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.15s;
+  }
+  .tap-btn:active { transform: scale(0.98); background: var(--blue-light); }
+  .tap-btn .icon { font-size: 48px; }
+  .tap-btn .sub { font-size: 14px; font-weight: 400; color: var(--blue-mid); }
+  .tap-btn.scanning {
+    border-style: solid;
+    background: var(--blue-light);
+    animation: pulse 1.2s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.65; } }
+
+  .status-banner {
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    font-size: 15px;
+    font-weight: 500;
+    margin-top: 14px;
+    display: none;
+  }
+  .status-banner.show { display: block; }
+  .status-banner.success { background: var(--green-light); color: var(--green); }
+  .status-banner.error { background: var(--red-light); color: var(--red); }
+  .status-banner.info { background: var(--amber-light); color: var(--amber); }
+
+  .employee-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .emp-card {
+    background: var(--gray-100);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+    text-align: center;
+  }
+  .emp-avatar {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: var(--blue-light);
+    color: var(--blue);
+    font-size: 13px;
+    font-weight: 600;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 8px;
+  }
+  .emp-name { font-size: 13px; font-weight: 500; color: var(--gray-900); line-height: 1.3; }
+  .emp-status {
+    display: inline-block;
+    margin-top: 6px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+  .emp-status.in { background: var(--green-light); color: var(--green); }
+  .emp-status.out { background: var(--gray-100); color: var(--gray-400); border: 1px solid var(--gray-200); }
+
+  .week-select { display: flex; gap: 10px; align-items: center; margin-bottom: 16px; flex-wrap: wrap; }
+  .week-select label { font-size: 13px; color: var(--gray-700); }
+  .week-select select, .week-select input {
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-sm);
+    padding: 6px 10px;
+    font-size: 13px;
+    background: var(--white);
+  }
+
+  .report-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .report-table th {
+    text-align: left;
+    padding: 8px 10px;
+    background: var(--blue);
+    color: white;
+    font-weight: 500;
+  }
+  .report-table th:first-child { border-radius: 6px 0 0 0; }
+  .report-table th:last-child { border-radius: 0 6px 0 0; }
+  .report-table td { padding: 8px 10px; border-bottom: 1px solid var(--gray-200); }
+  .report-table tr:last-child td { border-bottom: none; }
+  .report-table tr:nth-child(even) td { background: var(--gray-100); }
+  .report-table .total-row td { font-weight: 600; background: var(--blue-pale); color: var(--blue); }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 16px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--gray-200);
+    background: var(--white);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    color: var(--gray-900);
+    transition: background 0.12s;
+  }
+  .btn:hover { background: var(--gray-100); }
+  .btn.primary { background: var(--blue); color: white; border-color: var(--blue); }
+  .btn.primary:hover { background: var(--blue-mid); }
+  .btn.danger { color: var(--red); border-color: #f5b7b1; }
+  .btn.danger:hover { background: var(--red-light); }
+
+  .setup-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--gray-200);
+    flex-wrap: wrap;
+  }
+  .setup-row:last-child { border-bottom: none; }
+  .setup-emp-name { flex: 1; font-size: 14px; font-weight: 500; min-width: 140px; }
+  .setup-nfc {
+    font-size: 12px;
+    color: var(--gray-400);
+    flex: 1;
+    min-width: 120px;
+    font-family: monospace;
+  }
+  .setup-nfc.assigned { color: var(--green); font-weight: 500; }
+
+  .log-list { max-height: 320px; overflow-y: auto; }
+  .log-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--gray-200);
+    font-size: 13px;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .log-item:last-child { border-bottom: none; }
+  .log-name { font-weight: 500; }
+  .log-time { color: var(--gray-400); font-variant-numeric: tabular-nums; }
+  .log-type { padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+  .log-type.in { background: var(--green-light); color: var(--green); }
+  .log-type.out { background: var(--red-light); color: var(--red); }
+
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .summary-card {
+    background: var(--gray-100);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+    text-align: center;
+  }
+  .summary-card .val { font-size: 22px; font-weight: 600; color: var(--blue); }
+  .summary-card .lbl { font-size: 11px; color: var(--gray-400); margin-top: 2px; }
+
+  .export-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 100;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 40px 16px;
+    overflow-y: auto;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 24px;
+    width: 100%;
+    max-width: 420px;
+  }
+  .modal h3 { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
+  .modal p { font-size: 14px; color: var(--gray-700); margin-bottom: 16px; line-height: 1.5; }
+  .modal-btns { display: flex; gap: 10px; justify-content: flex-end; }
+
+  .nfc-scan-area {
+    border: 2px dashed var(--blue-mid);
+    border-radius: var(--radius);
+    padding: 30px;
+    text-align: center;
+    background: var(--blue-pale);
+    margin: 16px 0;
+  }
+  .nfc-scan-area.scanning { animation: pulse 1.2s ease-in-out infinite; }
+  .nfc-scan-area .big-icon { font-size: 52px; display: block; margin-bottom: 8px; }
+  .nfc-scan-area p { font-size: 14px; color: var(--blue); font-weight: 500; }
+
+  .pin-pad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    max-width: 260px;
+    margin: 0 auto 16px;
+  }
+  .pin-btn {
+    padding: 16px;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-sm);
+    background: var(--white);
+    font-size: 20px;
+    font-weight: 500;
+    cursor: pointer;
+    color: var(--gray-900);
+  }
+  .pin-btn:active { background: var(--gray-100); }
+  .pin-display {
+    text-align: center;
+    font-size: 28px;
+    letter-spacing: 8px;
+    color: var(--blue);
+    margin-bottom: 16px;
+    height: 40px;
+  }
+
+  input[type="date"] {
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-sm);
+    padding: 6px 10px;
+    font-size: 13px;
+    background: var(--white);
+  }
+
+  #admin-lock {
+    position: absolute;
+    top: 12px;
+    right: 20px;
+  }
+</style>
+</head>
+<body>
+
+<div style="position: relative; min-height: 100vh; display: flex; flex-direction: column;">
 
 <header>
   <div>
-    <h1><i class="ti ti-clock" aria-hidden="true" style="margin-right:6px"></i>Royal Bodies &amp; Repair</h1>
-    <div class="live-clock" id="live-clock"></div>
+    <h1>Royal Bodies & Repair Timeclock</h1>
+    <div class="clock" id="live-clock"></div>
   </div>
-  <button class="admin-btn" id="admin-btn" onclick="showAdminPin()">
-    <i class="ti ti-settings" aria-hidden="true"></i><span id="admin-label">Admin</span>
+  <button class="btn" id="admin-btn" style="background:rgba(255,255,255,0.15); border-color:rgba(255,255,255,0.3); color:white; font-size:12px;" onclick="showAdminPin()">
+    &#9881; Admin
   </button>
 </header>
 
-<nav id="nav">
-  <button class="active" onclick="showPage('clock',this)"><i class="ti ti-fingerprint" aria-hidden="true"></i> Clock</button>
-  <button onclick="showPage('status',this)"><i class="ti ti-users" aria-hidden="true"></i> Status</button>
-  <button onclick="showPage('log',this)"><i class="ti ti-list" aria-hidden="true"></i> Log</button>
-  <button class="admin-only" onclick="showPage('reports',this)" style="display:none"><i class="ti ti-chart-bar" aria-hidden="true"></i> Reports</button>
-  <button class="admin-only" onclick="showPage('setup',this)" style="display:none"><i class="ti ti-settings" aria-hidden="true"></i> Setup</button>
+<nav>
+  <button class="active" onclick="showPage('clock', this)">&#9201; Clock In/Out</button>
+  <button onclick="showPage('status', this)">&#128101; Status</button>
+  <button onclick="showPage('log', this)">&#128203; Log</button>
+  <button class="admin-only" onclick="showPage('reports', this)" style="display:none">&#128202; Reports</button>
+  <button class="admin-only" onclick="showPage('setup', this)" style="display:none">&#9881; Setup</button>
 </nav>
 
 <main>
 
-<div id="page-clock" class="page active">
-  <div class="card">
-    <h2><i class="ti ti-clock" aria-hidden="true"></i> Clock in or out</h2>
-    <button class="tap-btn" id="tap-btn" onclick="startNFCScan('clockinout')">
-      <span class="icon"><i class="ti ti-credit-card" aria-hidden="true"></i></span>
-      Tap to scan NFC card
-      <span class="sub">Press, then hold your card to the back of the tablet</span>
-    </button>
-    <div class="status-banner" id="clock-status"></div>
-  </div>
-</div>
-
-<div id="page-status" class="page">
-  <div class="card">
-    <h2><i class="ti ti-users" aria-hidden="true"></i> Who's in right now</h2>
-    <div class="emp-grid" id="status-grid"></div>
-  </div>
-</div>
-
-<div id="page-log" class="page">
-  <div class="card">
-    <h2><i class="ti ti-list" aria-hidden="true"></i> Today's activity</h2>
-    <div class="log-list" id="log-list"></div>
-  </div>
-</div>
-
-<div id="page-reports" class="page">
-  <div class="card">
-    <h2><i class="ti ti-chart-bar" aria-hidden="true"></i> Weekly hours report</h2>
-    <div class="week-row">
-      <label>Week starting:</label>
-      <input type="date" id="report-week-start" onchange="buildReport()">
-      <button class="btn" onclick="setCurrentWeek()">This week</button>
-    </div>
-    <div class="summary-grid" id="report-summary"></div>
-    <div style="overflow-x:auto" id="report-table-wrap"></div>
-    <div class="export-row">
-      <button class="btn primary" onclick="exportCSV()"><i class="ti ti-download" aria-hidden="true"></i> Export CSV</button>
-      <button class="btn" onclick="exportText()"><i class="ti ti-copy" aria-hidden="true"></i> Copy as text</button>
+  <div id="page-clock" class="page active">
+    <div class="card">
+      <h2>&#9201; Clock in or out</h2>
+      <button class="tap-btn" id="tap-btn" onclick="startNFCScan('clockinout')">
+        <span class="icon">&#128179;</span>
+        Tap to scan NFC card
+        <span class="sub">Press, then hold your card to the back of the tablet</span>
+      </button>
+      <div class="status-banner" id="clock-status"></div>
     </div>
   </div>
-  <div class="card">
-    <h2><i class="ti ti-edit" aria-hidden="true"></i> Edit / correct a punch</h2>
-    <p style="font-size:12px;color:var(--color-text-secondary);margin-bottom:10px">Select an entry to delete or correct it.</p>
-    <div id="edit-log-list" class="log-list"></div>
-  </div>
-</div>
 
-<div id="page-setup" class="page">
-  <div class="card">
-    <h2><i class="ti ti-credit-card" aria-hidden="true"></i> NFC card assignment</h2>
-    <p style="font-size:12px;color:var(--color-text-secondary);margin-bottom:12px">Tap "Assign" next to each employee, then hold their NFC card to the tablet.</p>
-    <div id="setup-list"></div>
-  </div>
-  <div class="card">
-    <h2><i class="ti ti-lock" aria-hidden="true"></i> Admin PIN</h2>
-    <p style="font-size:12px;color:var(--color-text-secondary);margin-bottom:10px">Default PIN is 1234.</p>
-    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-      <input type="password" id="new-pin" placeholder="New 4-digit PIN" maxlength="4">
-      <button class="btn primary" onclick="changePin()">Update PIN</button>
+  <div id="page-status" class="page">
+    <div class="card">
+      <h2>&#128101; Who's in right now</h2>
+      <div class="employee-grid" id="status-grid"></div>
     </div>
-    <div id="pin-change-status" style="font-size:12px;margin-top:8px"></div>
   </div>
-  <div class="card danger-zone">
-    <h2><i class="ti ti-alert-triangle" aria-hidden="true"></i> Data management</h2>
-    <p style="font-size:12px;color:var(--color-text-secondary);margin-bottom:10px">Clear all punch data after exporting. NFC card assignments are preserved.</p>
-    <button class="btn danger" onclick="confirmClearWeek()"><i class="ti ti-trash" aria-hidden="true"></i> Clear all punches</button>
+
+  <div id="page-log" class="page">
+    <div class="card">
+      <h2>&#128203; Today's activity</h2>
+      <div class="log-list" id="log-list"></div>
+    </div>
   </div>
-</div>
+
+  <div id="page-reports" class="page">
+    <div class="card">
+      <h2>&#128202; Weekly hours report</h2>
+      <div class="week-select">
+        <label>Week starting:</label>
+        <input type="date" id="report-week-start" onchange="buildReport()">
+        <button class="btn" onclick="setCurrentWeek()">This week</button>
+      </div>
+      <div class="summary-grid" id="report-summary"></div>
+      <div id="report-table-wrap"></div>
+      <div class="export-row">
+        <button class="btn primary" onclick="exportCSV()">&#8659; Export CSV for accountant</button>
+        <button class="btn" onclick="exportText()">&#128221; Copy as text</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2>&#128221; Edit / correct a punch</h2>
+      <p style="font-size:13px; color:#6b7280; margin-bottom:12px;">Select an entry below to delete or correct it.</p>
+      <div id="edit-log-list" class="log-list"></div>
+    </div>
+  </div>
+
+  <div id="page-setup" class="page">
+    <div class="card">
+      <h2>&#128179; NFC card assignment</h2>
+      <p style="font-size:13px; color:#6b7280; margin-bottom:14px;">Tap "Assign card" next to each employee, then hold their NFC card to the tablet to register it.</p>
+      <div id="setup-list"></div>
+    </div>
+    <div class="card">
+      <h2>&#9881; Admin PIN</h2>
+      <p style="font-size:13px; color:#6b7280; margin-bottom:12px;">Current PIN protects reports and setup. Default is 1234.</p>
+      <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+        <input type="password" id="new-pin" placeholder="New PIN (4 digits)" maxlength="4" style="border:1px solid #e5e5e5; border-radius:8px; padding:8px 12px; font-size:14px; width:180px;">
+        <button class="btn primary" onclick="changePin()">Update PIN</button>
+      </div>
+      <div id="pin-change-status" style="font-size:13px; margin-top:8px;"></div>
+    </div>
+    <div class="card">
+      <h2 style="color:#c0392b;">&#9888; Data management</h2>
+      <p style="font-size:13px; color:#6b7280; margin-bottom:12px;">Clear all punch data after exporting for the week. NFC assignments are preserved.</p>
+      <button class="btn danger" onclick="confirmClearWeek()">Clear this week's punches</button>
+    </div>
+  </div>
 
 </main>
 
-<div class="overlay" id="nfc-overlay">
+<div class="modal-overlay" id="nfc-modal">
   <div class="modal">
-    <h3 id="nfc-modal-title">Scanning for NFC card…</h3>
-    <div class="nfc-area" id="nfc-area">
-      <span class="nfc-icon"><i class="ti ti-credit-card" aria-hidden="true"></i></span>
-      <p id="nfc-msg">Hold your NFC card to the back of the tablet</p>
+    <h3 id="nfc-modal-title">Scanning for NFC card...</h3>
+    <div class="nfc-scan-area" id="nfc-scan-area">
+      <span class="big-icon">&#128179;</span>
+      <p id="nfc-scan-msg">Hold your NFC card to the back of the tablet</p>
     </div>
     <div class="modal-btns">
       <button class="btn" onclick="cancelNFC()">Cancel</button>
@@ -199,7 +448,7 @@ input[type=password]{border:0.5px solid var(--color-border-secondary);border-rad
   </div>
 </div>
 
-<div class="overlay" id="pin-overlay">
+<div class="modal-overlay" id="pin-modal">
   <div class="modal">
     <h3>Admin access</h3>
     <p>Enter your PIN to access reports and settings.</p>
@@ -214,40 +463,40 @@ input[type=password]{border:0.5px solid var(--color-border-secondary);border-rad
       <button class="pin-btn" onclick="pinPress('7')">7</button>
       <button class="pin-btn" onclick="pinPress('8')">8</button>
       <button class="pin-btn" onclick="pinPress('9')">9</button>
-      <button class="pin-btn" onclick="pinPress('clear')" style="font-size:12px;color:var(--red)">Clear</button>
+      <button class="pin-btn" onclick="pinPress('clear')" style="font-size:14px; color:#c0392b;">Clear</button>
       <button class="pin-btn" onclick="pinPress('0')">0</button>
-      <button class="pin-btn" onclick="pinPress('back')" style="font-size:14px">&#9003;</button>
+      <button class="pin-btn" onclick="pinPress('back')" style="font-size:14px;">&#9003;</button>
     </div>
-    <div id="pin-error" style="color:var(--red);font-size:12px;text-align:center;height:16px"></div>
-    <div class="modal-btns" style="margin-top:10px">
+    <div id="pin-error" style="color:#c0392b; font-size:13px; text-align:center; height:18px;"></div>
+    <div class="modal-btns" style="margin-top:12px;">
       <button class="btn" onclick="closePinModal()">Cancel</button>
     </div>
   </div>
 </div>
 
-<div class="overlay" id="confirm-overlay">
+<div class="modal-overlay" id="confirm-modal">
   <div class="modal">
     <h3 id="confirm-title">Confirm</h3>
     <p id="confirm-msg"></p>
     <div class="modal-btns">
       <button class="btn" onclick="closeConfirm()">Cancel</button>
-      <button class="btn danger" onclick="confirmAction()">Confirm</button>
+      <button class="btn danger" id="confirm-ok-btn" onclick="confirmAction()">Confirm</button>
     </div>
   </div>
 </div>
 
-<div class="overlay" id="manual-overlay">
+<div class="modal-overlay" id="manual-clock-modal">
   <div class="modal">
     <h3>Manual clock in/out</h3>
-    <p id="manual-msg"></p>
-    <div style="margin-bottom:14px">
-      <label style="font-size:12px;color:var(--color-text-secondary);display:block;margin-bottom:6px">Time (defaults to now)</label>
-      <input type="time" id="manual-time">
+    <p id="manual-clock-msg" style="margin-bottom:12px;"></p>
+    <div style="margin-bottom:16px;">
+      <label style="font-size:13px; color:#6b7280; display:block; margin-bottom:6px;">Time (defaults to now)</label>
+      <input type="time" id="manual-time-input" style="border:1px solid #e5e5e5; border-radius:8px; padding:8px 12px; font-size:14px; width:150px;">
     </div>
     <div class="modal-btns">
-      <button class="btn" onclick="closeManual()">Cancel</button>
-      <button class="btn primary" onclick="manualPunch('in')">Clock in</button>
-      <button class="btn danger" onclick="manualPunch('out')">Clock out</button>
+      <button class="btn" onclick="closeManualModal()">Cancel</button>
+      <button class="btn primary" id="manual-in-btn" onclick="manualPunch('in')">Clock In</button>
+      <button class="btn" id="manual-out-btn" onclick="manualPunch('out')" style="background:#c0392b; color:white; border-color:#c0392b;">Clock Out</button>
     </div>
   </div>
 </div>
@@ -255,331 +504,519 @@ input[type=password]{border:0.5px solid var(--color-border-secondary);border-rad
 </div>
 
 <script>
-const EMPLOYEES=[
-  {id:'emp1',name:'Steven W. Mansbart',initials:'SW'},
-  {id:'emp2',name:'Steven J. Mansbart',initials:'SJ'},
-  {id:'emp3',name:'Jeremy Molody',initials:'JM'},
-  {id:'emp4',name:'Keri Mansbart',initials:'KM'},
-  {id:'emp5',name:'Herman Mansbart',initials:'HM'},
+const EMPLOYEES = [
+  { id: 'emp1', name: 'Steven W. Mansbart', initials: 'SW' },
+  { id: 'emp2', name: 'Steven J. Mansbart', initials: 'SJ' },
+  { id: 'emp3', name: 'Jeremy Molody',      initials: 'JM' },
+  { id: 'emp4', name: 'Keri Mansbart',      initials: 'KM' },
+  { id: 'emp5', name: 'Herman Mansbart',    initials: 'HM' },
 ];
 
-const mem={};
-function load(k,def){try{const v=localStorage.getItem(k);return v?JSON.parse(v):(mem[k]!==undefined?mem[k]:def)}catch(e){return mem[k]!==undefined?mem[k]:def}}
-function save(k,v){mem[k]=v;try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
-
-let nfcMap=load('tc_nfc',{});
-let punches=load('tc_punches',[]);
-let adminPin=load('tc_pin','1234');
-let isAdmin=false;
-let nfcMode=null,assignEmpId=null,nfcReader=null,pendingConfirm=null,pinEntry='',manualEmpId=null;
-
-function savePunches(){save('tc_punches',punches)}
-function saveNfc(){save('tc_nfc',nfcMap)}
-function savePin(){save('tc_pin',adminPin)}
-
-function fmt(d){return d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:true})}
-function fmtDate(d){return d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})}
-function fmtFull(ts){const d=new Date(ts);return fmtDate(d)+' '+fmt(d)}
-
-function updateClock(){
-  document.getElementById('live-clock').textContent=new Date().toLocaleString('en-US',{weekday:'short',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:true});
+const _memStore = {};
+function loadData(key, def) {
+  try {
+    const v = localStorage.getItem(key);
+    return v ? JSON.parse(v) : (_memStore[key] !== undefined ? _memStore[key] : def);
+  } catch(e) {
+    return _memStore[key] !== undefined ? _memStore[key] : def;
+  }
 }
-setInterval(updateClock,1000);updateClock();
-
-function showPage(name,btn){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
-  document.getElementById('page-'+name).classList.add('active');
-  if(btn)btn.classList.add('active');
-  if(name==='status')renderStatus();
-  if(name==='log')renderLog();
-  if(name==='reports'){setCurrentWeek();buildReport();renderEditLog()}
-  if(name==='setup')renderSetup();
+function saveData(key, val) {
+  _memStore[key] = val;
+  try { localStorage.setItem(key, JSON.stringify(val)); } catch(e) {}
 }
 
-function showAdminPin(){
-  if(isAdmin){toggleAdminUI(false);return}
-  pinEntry='';
-  document.getElementById('pin-display').innerHTML='&#9679;&#9679;&#9679;&#9679;';
-  document.getElementById('pin-error').textContent='';
-  document.getElementById('pin-overlay').classList.add('show');
+let nfcMap    = loadData('tc_nfc', {});
+let punches   = loadData('tc_punches', []);
+let adminPin  = loadData('tc_pin', '1234');
+let isAdmin   = false;
+let nfcMode   = null;
+let assignEmpId = null;
+let nfcReader = null;
+let pendingConfirm = null;
+let pinEntry  = '';
+let manualEmpId = null;
+
+function savePunches() { saveData('tc_punches', punches); }
+function saveNfc()     { saveData('tc_nfc', nfcMap); }
+function savePin()     { saveData('tc_pin', adminPin); }
+
+function fmt(d) {
+  return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
 }
-function closePinModal(){document.getElementById('pin-overlay').classList.remove('show');pinEntry=''}
-function pinPress(val){
-  if(val==='clear')pinEntry='';
-  else if(val==='back')pinEntry=pinEntry.slice(0,-1);
-  else if(pinEntry.length<4)pinEntry+=val;
-  const d=pinEntry.length,e=4-d;
-  document.getElementById('pin-display').innerHTML='&#9679;'.repeat(d)+'<span style="opacity:0.2">&#9679;</span>'.repeat(e);
-  if(pinEntry.length===4){
-    if(pinEntry===adminPin){closePinModal();toggleAdminUI(true)}
-    else{
-      document.getElementById('pin-error').textContent='Incorrect PIN. Try again.';
-      setTimeout(()=>{pinEntry='';document.getElementById('pin-display').innerHTML='<span style="opacity:0.2">&#9679;&#9679;&#9679;&#9679;</span>';document.getElementById('pin-error').textContent=''},1000);
+function fmtDate(d) {
+  return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+}
+function fmtFull(ts) {
+  const d = new Date(ts);
+  return fmtDate(d) + ' ' + fmt(d);
+}
+
+function updateClock() {
+  document.getElementById('live-clock').textContent = new Date().toLocaleString('en-US', {
+    weekday: 'short', month: 'short', day: 'numeric',
+    hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
+  });
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+function showPage(name, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  if (btn) btn.classList.add('active');
+  if (name === 'status')  renderStatus();
+  if (name === 'log')     renderLog();
+  if (name === 'reports') { setCurrentWeek(); buildReport(); renderEditLog(); }
+  if (name === 'setup')   renderSetup();
+}
+
+function showAdminPin() {
+  if (isAdmin) { toggleAdminUI(false); return; }
+  pinEntry = '';
+  document.getElementById('pin-display').innerHTML = '&#9679;&#9679;&#9679;&#9679;';
+  document.getElementById('pin-error').textContent = '';
+  document.getElementById('pin-modal').classList.add('show');
+}
+function closePinModal() {
+  document.getElementById('pin-modal').classList.remove('show');
+  pinEntry = '';
+}
+function pinPress(val) {
+  if (val === 'clear') { pinEntry = ''; }
+  else if (val === 'back') { pinEntry = pinEntry.slice(0, -1); }
+  else if (pinEntry.length < 4) { pinEntry += val; }
+
+  const dots = pinEntry.length;
+  const empty = 4 - dots;
+  document.getElementById('pin-display').innerHTML =
+    '&#9679;'.repeat(dots) + '<span style="opacity:0.2">&#9679;</span>'.repeat(empty);
+
+  if (pinEntry.length === 4) {
+    if (pinEntry === adminPin) {
+      closePinModal();
+      toggleAdminUI(true);
+    } else {
+      document.getElementById('pin-error').textContent = 'Incorrect PIN. Try again.';
+      setTimeout(() => { pinEntry = ''; document.getElementById('pin-display').innerHTML = '<span style="opacity:0.2">&#9679;&#9679;&#9679;&#9679;</span>'; document.getElementById('pin-error').textContent = ''; }, 1000);
     }
   }
 }
-function toggleAdminUI(on){
-  isAdmin=on;
-  document.querySelectorAll('.admin-only').forEach(el=>el.style.display=on?'':'none');
-  document.getElementById('admin-label').textContent=on?'Exit admin':'Admin';
-  document.getElementById('admin-btn').style.background=on?'rgba(255,200,100,0.3)':'rgba(255,255,255,0.15)';
+function toggleAdminUI(on) {
+  isAdmin = on;
+  document.querySelectorAll('.admin-only').forEach(el => el.style.display = on ? '' : 'none');
+  document.getElementById('admin-btn').textContent = on ? '&#9881; Exit admin' : '&#9881; Admin';
+  document.getElementById('admin-btn').style.background = on ? 'rgba(255,200,100,0.25)' : 'rgba(255,255,255,0.15)';
 }
 
-function getStatus(empId){
-  const ep=punches.filter(p=>p.empId===empId).sort((a,b)=>a.ts-b.ts);
-  if(!ep.length)return'out';
-  return ep[ep.length-1].type==='in'?'in':'out';
+function getEmployeeStatus(empId) {
+  const empPunches = punches.filter(p => p.empId === empId).sort((a,b) => a.ts - b.ts);
+  if (!empPunches.length) return 'out';
+  return empPunches[empPunches.length - 1].type === 'in' ? 'in' : 'out';
 }
 
-function renderStatus(){
-  document.getElementById('status-grid').innerHTML=EMPLOYEES.map(e=>{
-    const s=getStatus(e.id);
-    return`<div class="emp-card">
+function renderStatus() {
+  const grid = document.getElementById('status-grid');
+  grid.innerHTML = EMPLOYEES.map(e => {
+    const status = getEmployeeStatus(e.id);
+    const nfc = nfcMap[e.id] ? 'Card assigned' : 'No card';
+    return `<div class="emp-card">
       <div class="emp-avatar">${e.initials}</div>
       <div class="emp-name">${e.name}</div>
-      <span class="emp-badge ${s}">${s==='in'?'Clocked in':'Clocked out'}</span>
+      <span class="emp-status ${status}">${status === 'in' ? 'Clocked in' : 'Clocked out'}</span>
     </div>`;
   }).join('');
 }
 
-function renderLog(){
-  const today=new Date();today.setHours(0,0,0,0);
-  const tp=punches.filter(p=>new Date(p.ts)>=today).sort((a,b)=>b.ts-a.ts);
-  const el=document.getElementById('log-list');
-  if(!tp.length){el.innerHTML='<p style="color:var(--color-text-secondary);font-size:13px;padding:12px 0">No activity today.</p>';return}
-  el.innerHTML=tp.map(p=>{
-    const emp=EMPLOYEES.find(e=>e.id===p.empId);
-    return`<div class="log-item">
-      <span class="log-name">${emp?emp.name:'Unknown'}</span>
+function renderLog() {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const todayPunches = punches
+    .filter(p => new Date(p.ts) >= today)
+    .sort((a,b) => b.ts - a.ts);
+  const list = document.getElementById('log-list');
+  if (!todayPunches.length) {
+    list.innerHTML = '<p style="color:#9ca3af; font-size:13px; padding:12px 0;">No activity today.</p>';
+    return;
+  }
+  list.innerHTML = todayPunches.map(p => {
+    const emp = EMPLOYEES.find(e => e.id === p.empId);
+    return `<div class="log-item">
+      <span class="log-name">${emp ? emp.name : 'Unknown'}</span>
       <span class="log-time">${fmt(new Date(p.ts))}</span>
-      <span class="log-badge ${p.type}">${p.type==='in'?'Clock in':'Clock out'}</span>
+      <span class="log-type ${p.type}">${p.type === 'in' ? 'Clock in' : 'Clock out'}</span>
     </div>`;
   }).join('');
 }
 
-function startNFCScan(mode,empId){
-  nfcMode=mode;assignEmpId=empId||null;
-  const title=document.getElementById('nfc-modal-title');
-  const msg=document.getElementById('nfc-msg');
-  const area=document.getElementById('nfc-area');
-  if(mode==='assign'){
-    const emp=EMPLOYEES.find(e=>e.id===empId);
-    title.textContent='Assign card — '+emp.name;
-    msg.textContent='Hold the NFC card to the back of the tablet';
-  }else{
-    title.textContent='Scanning for NFC card…';
-    msg.textContent='Hold your NFC card to the back of the tablet';
+function startNFCScan(mode, empId) {
+  nfcMode = mode;
+  assignEmpId = empId || null;
+  const modal = document.getElementById('nfc-modal');
+  const title = document.getElementById('nfc-modal-title');
+  const msg   = document.getElementById('nfc-scan-msg');
+  const area  = document.getElementById('nfc-scan-area');
+
+  if (mode === 'assign') {
+    const emp = EMPLOYEES.find(e => e.id === empId);
+    title.textContent = 'Assign card — ' + emp.name;
+    msg.textContent = 'Hold the NFC card to the back of the tablet';
+  } else {
+    title.textContent = 'Scanning for NFC card...';
+    msg.textContent = 'Hold your NFC card to the back of the tablet';
   }
   area.classList.add('scanning');
-  document.getElementById('nfc-overlay').classList.add('show');
-  if(!('NDEFReader' in window)){simulateNFC();return}
-  nfcReader=new NDEFReader();
-  nfcReader.scan().then(()=>{
-    nfcReader.onreading=(e)=>handleNFC(e.serialNumber||('uid-'+Math.random().toString(36).substr(2,8)));
-    nfcReader.onerror=()=>{area.classList.remove('scanning');msg.textContent='NFC error. Please try again.'};
-  }).catch(()=>simulateNFC());
+  modal.classList.add('show');
+
+  if (!('NDEFReader' in window)) {
+    simulateNFCScan();
+    return;
+  }
+  nfcReader = new NDEFReader();
+  nfcReader.scan().then(() => {
+    nfcReader.onreading = (event) => {
+      const uid = event.serialNumber || ('uid-' + Math.random().toString(36).substr(2,8));
+      handleNFCRead(uid);
+    };
+    nfcReader.onerror = () => {
+      area.classList.remove('scanning');
+      msg.textContent = 'NFC error. Please try again.';
+    };
+  }).catch(err => {
+    console.warn('NFC not available:', err);
+    simulateNFCScan();
+  });
 }
 
-function simulateNFC(){
-  const area=document.getElementById('nfc-area');
-  const msg=document.getElementById('nfc-msg');
-  msg.textContent='NFC not available — tap the card area below to simulate';
-  area.classList.remove('scanning');area.style.cursor='pointer';
-  area.onclick=()=>{
-    handleNFC('DEMO-'+Math.random().toString(36).substr(2,6).toUpperCase());
-    area.onclick=null;area.style.cursor='';
+function simulateNFCScan() {
+  const area = document.getElementById('nfc-scan-area');
+  const msg  = document.getElementById('nfc-scan-msg');
+  msg.textContent = 'NFC not available on this device/browser — tap below to simulate';
+  area.classList.remove('scanning');
+  area.style.cursor = 'pointer';
+  area.onclick = () => {
+    const fakeUID = 'DEMO-' + Math.random().toString(36).substr(2,6).toUpperCase();
+    handleNFCRead(fakeUID);
+    area.onclick = null;
+    area.style.cursor = '';
   };
 }
 
-function handleNFC(uid){
-  document.getElementById('nfc-overlay').classList.remove('show');
-  document.getElementById('nfc-area').classList.remove('scanning');
-  if(nfcReader){try{nfcReader.onreading=null}catch(e){}}
-  if(nfcMode==='assign'){
-    nfcMap[assignEmpId]=uid;saveNfc();renderSetup();
-    showBanner('clock-status',`Card assigned to ${EMPLOYEES.find(e=>e.id===assignEmpId).name}.`,'success');
+function handleNFCRead(uid) {
+  document.getElementById('nfc-modal').classList.remove('show');
+  document.getElementById('nfc-scan-area').classList.remove('scanning');
+  if (nfcReader) { try { nfcReader.onreading = null; } catch(e) {} }
+
+  if (nfcMode === 'assign') {
+    nfcMap[assignEmpId] = uid;
+    saveNfc();
+    renderSetup();
+    showBanner('clock-status', `Card assigned to ${EMPLOYEES.find(e => e.id === assignEmpId).name}.`, 'success');
     return;
   }
-  const empId=Object.keys(nfcMap).find(id=>nfcMap[id]===uid);
-  if(!empId){showBanner('clock-status','Card not recognized. See your manager to assign your card.','error');return}
-  const emp=EMPLOYEES.find(e=>e.id===empId);
-  const newType=getStatus(empId)==='in'?'out':'in';
-  const now=Date.now();
-  punches.push({empId,type:newType,ts:now,uid});savePunches();
-  const msg=newType==='in'?`Welcome, ${emp.name}! Clocked in at ${fmt(new Date(now))}.`:`Goodbye, ${emp.name}! Clocked out at ${fmt(new Date(now))}.`;
-  showBanner('clock-status',msg,newType==='in'?'success':'info');
+
+  const empId = Object.keys(nfcMap).find(id => nfcMap[id] === uid);
+  if (!empId) {
+    showBanner('clock-status', 'Card not recognized. Please see your manager to assign your card.', 'error');
+    return;
+  }
+  const emp = EMPLOYEES.find(e => e.id === empId);
+  const status = getEmployeeStatus(empId);
+  const newType = status === 'in' ? 'out' : 'in';
+  const now = Date.now();
+  punches.push({ empId, type: newType, ts: now, uid });
+  savePunches();
+  const msg = newType === 'in'
+    ? `Welcome, ${emp.name}! Clocked in at ${fmt(new Date(now))}.`
+    : `Goodbye, ${emp.name}! Clocked out at ${fmt(new Date(now))}.`;
+  showBanner('clock-status', msg, newType === 'in' ? 'success' : 'info');
 }
 
-function cancelNFC(){
-  document.getElementById('nfc-overlay').classList.remove('show');
-  document.getElementById('nfc-area').classList.remove('scanning');
-  if(nfcReader){try{nfcReader.onreading=null}catch(e){}}
-  nfcMode=null;
+function cancelNFC() {
+  document.getElementById('nfc-modal').classList.remove('show');
+  document.getElementById('nfc-scan-area').classList.remove('scanning');
+  if (nfcReader) { try { nfcReader.onreading = null; } catch(e) {} }
+  nfcMode = null;
 }
 
-function showBanner(id,msg,type){
-  const el=document.getElementById(id);if(!el)return;
-  el.textContent=msg;el.className='status-banner show '+type;
-  clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),5000);
+function showBanner(id, msg, type) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = msg;
+  el.className = 'status-banner show ' + type;
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove('show'), 5000);
 }
 
-function getMondayOf(d){
-  const day=d.getDay(),diff=day===0?-6:1-day,mon=new Date(d);
-  mon.setDate(d.getDate()+diff);mon.setHours(0,0,0,0);return mon;
+function getMondayOf(d) {
+  const day = d.getDay();
+  const diff = (day === 0) ? -6 : 1 - day;
+  const mon = new Date(d);
+  mon.setDate(d.getDate() + diff);
+  mon.setHours(0,0,0,0);
+  return mon;
 }
-function setCurrentWeek(){
-  const mon=getMondayOf(new Date());
-  document.getElementById('report-week-start').value=mon.toISOString().slice(0,10);
+function setCurrentWeek() {
+  const mon = getMondayOf(new Date());
+  document.getElementById('report-week-start').value = mon.toISOString().slice(0,10);
   buildReport();
 }
 
-function buildReport(){
-  const val=document.getElementById('report-week-start').value;if(!val)return;
-  const ws=new Date(val+'T00:00:00'),we=new Date(ws);we.setDate(ws.getDate()+7);
-  const wp=punches.filter(p=>{const d=new Date(p.ts);return d>=ws&&d<we});
-  const eh={},dt={};
-  EMPLOYEES.forEach(e=>{eh[e.id]=0;dt[e.id]=Array(7).fill(0)});
-  EMPLOYEES.forEach(e=>{
-    const ep=wp.filter(p=>p.empId===e.id).sort((a,b)=>a.ts-b.ts);let li=null;
-    ep.forEach(p=>{
-      if(p.type==='in')li=p.ts;
-      else if(p.type==='out'&&li!==null){
-        const h=(p.ts-li)/3600000;eh[e.id]+=h;
-        const di=Math.min(6,Math.floor((li-ws)/86400000));if(di>=0)dt[e.id][di]+=h;
-        li=null;
+function buildReport() {
+  const val = document.getElementById('report-week-start').value;
+  if (!val) return;
+  const weekStart = new Date(val + 'T00:00:00');
+  const weekEnd   = new Date(weekStart); weekEnd.setDate(weekStart.getDate() + 7);
+
+  const weekPunches = punches.filter(p => {
+    const d = new Date(p.ts);
+    return d >= weekStart && d < weekEnd;
+  });
+
+  const empHours = {};
+  EMPLOYEES.forEach(e => { empHours[e.id] = 0; });
+
+  EMPLOYEES.forEach(e => {
+    const ep = weekPunches.filter(p => p.empId === e.id).sort((a,b) => a.ts - b.ts);
+    let lastIn = null;
+    ep.forEach(p => {
+      if (p.type === 'in') { lastIn = p.ts; }
+      else if (p.type === 'out' && lastIn !== null) {
+        empHours[e.id] += (p.ts - lastIn) / 3600000;
+        lastIn = null;
       }
     });
   });
-  const total=Object.values(eh).reduce((a,b)=>a+b,0);
-  const active=EMPLOYEES.filter(e=>eh[e.id]>0).length;
-  document.getElementById('report-summary').innerHTML=`
-    <div class="summary-card"><div class="val">${total.toFixed(1)}</div><div class="lbl">Total hours</div></div>
-    <div class="summary-card"><div class="val">${active}</div><div class="lbl">Active employees</div></div>
-    <div class="summary-card"><div class="val">${wp.length}</div><div class="lbl">Total punches</div></div>`;
-  const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-  const rows=EMPLOYEES.map(e=>{
-    const cells=dt[e.id].map(h=>h>0?h.toFixed(1):'-').join('</td><td>');
-    return`<tr><td style="font-weight:500">${e.name}</td><td>${cells}</td><td style="font-weight:500;color:var(--blue)">${eh[e.id].toFixed(1)}</td></tr>`;
+
+  const totalHours = Object.values(empHours).reduce((a,b) => a+b, 0);
+  const activeEmps = EMPLOYEES.filter(e => empHours[e.id] > 0).length;
+
+  document.getElementById('report-summary').innerHTML = `
+    <div class="summary-card"><div class="val">${totalHours.toFixed(1)}</div><div class="lbl">Total hours</div></div>
+    <div class="summary-card"><div class="val">${activeEmps}</div><div class="lbl">Employees active</div></div>
+    <div class="summary-card"><div class="val">${weekPunches.length}</div><div class="lbl">Total punches</div></div>
+  `;
+
+  const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const dayTotals = {};
+  EMPLOYEES.forEach(e => { dayTotals[e.id] = Array(7).fill(0); });
+
+  EMPLOYEES.forEach(e => {
+    const ep = weekPunches.filter(p => p.empId === e.id).sort((a,b) => a.ts - b.ts);
+    let lastIn = null;
+    ep.forEach(p => {
+      if (p.type === 'in') { lastIn = p.ts; }
+      else if (p.type === 'out' && lastIn !== null) {
+        const di = Math.min(6, Math.floor((lastIn - weekStart) / 86400000));
+        if (di >= 0) dayTotals[e.id][di] += (p.ts - lastIn) / 3600000;
+        lastIn = null;
+      }
+    });
+  });
+
+  let rows = EMPLOYEES.map(e => {
+    const dayCells = dayTotals[e.id].map(h => h > 0 ? h.toFixed(1) : '-').join('</td><td>');
+    return `<tr>
+      <td style="font-weight:500">${e.name}</td>
+      <td>${dayCells}</td>
+      <td style="font-weight:600; color:#1F4E79">${empHours[e.id].toFixed(1)}</td>
+    </tr>`;
   }).join('');
-  document.getElementById('report-table-wrap').innerHTML=`
-    <table class="report-table" style="min-width:500px">
-      <thead><tr><th style="width:150px">Employee</th>${days.map(d=>`<th>${d}</th>`).join('')}<th>Total</th></tr></thead>
+  const dayHeaders = days.map(d => `<th>${d}</th>`).join('');
+  document.getElementById('report-table-wrap').innerHTML = `
+    <div style="overflow-x:auto">
+    <table class="report-table" style="table-layout:fixed; min-width:520px;">
+      <thead><tr><th style="width:160px">Employee</th>${dayHeaders}<th>Total</th></tr></thead>
       <tbody>${rows}</tbody>
-      <tfoot><tr class="total-row"><td>Total</td>${Array(7).fill(0).map((_,di)=>{
-        const s=EMPLOYEES.reduce((a,e)=>a+dt[e.id][di],0);return`<td>${s>0?s.toFixed(1):'-'}</td>`;
-      }).join('')}<td>${total.toFixed(1)}</td></tr></tfoot>
-    </table>`;
+      <tfoot><tr class="total-row">
+        <td>Total</td>
+        ${Array(7).fill(0).map((_,di) => {
+          const dt = EMPLOYEES.reduce((s,e) => s + dayTotals[e.id][di], 0);
+          return `<td>${dt > 0 ? dt.toFixed(1) : '-'}</td>`;
+        }).join('')}
+        <td>${totalHours.toFixed(1)}</td>
+      </tr></tfoot>
+    </table></div>`;
 }
 
-function exportCSV(){
-  const val=document.getElementById('report-week-start').value;if(!val)return;
-  const ws=new Date(val+'T00:00:00'),we=new Date(ws);we.setDate(ws.getDate()+7);
-  const wp=punches.filter(p=>{const d=new Date(p.ts);return d>=ws&&d<we});
-  const eh={},dt={};
-  EMPLOYEES.forEach(e=>{eh[e.id]=0;dt[e.id]=Array(7).fill(0)});
-  EMPLOYEES.forEach(e=>{
-    const ep=wp.filter(p=>p.empId===e.id).sort((a,b)=>a.ts-b.ts);let li=null;
-    ep.forEach(p=>{
-      if(p.type==='in')li=p.ts;
-      else if(p.type==='out'&&li){
-        const h=(p.ts-li)/3600000;eh[e.id]+=h;
-        const di=Math.min(6,Math.floor((li-ws)/86400000));if(di>=0)dt[e.id][di]+=h;li=null;
+function exportCSV() {
+  const val = document.getElementById('report-week-start').value;
+  if (!val) return;
+  const weekStart = new Date(val + 'T00:00:00');
+  const weekEnd = new Date(weekStart); weekEnd.setDate(weekStart.getDate() + 7);
+  const weekPunches = punches.filter(p => { const d = new Date(p.ts); return d >= weekStart && d < weekEnd; });
+  const empHours = {};
+  EMPLOYEES.forEach(e => { empHours[e.id] = 0; });
+  EMPLOYEES.forEach(e => {
+    const ep = weekPunches.filter(p => p.empId === e.id).sort((a,b) => a.ts - b.ts);
+    let lastIn = null;
+    ep.forEach(p => {
+      if (p.type === 'in') lastIn = p.ts;
+      else if (p.type === 'out' && lastIn) { empHours[e.id] += (p.ts - lastIn) / 3600000; lastIn = null; }
+    });
+  });
+  const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const dayTotals = {};
+  EMPLOYEES.forEach(e => { dayTotals[e.id] = Array(7).fill(0); });
+  EMPLOYEES.forEach(e => {
+    const ep = weekPunches.filter(p => p.empId === e.id).sort((a,b) => a.ts - b.ts);
+    let lastIn = null;
+    ep.forEach(p => {
+      if (p.type === 'in') lastIn = p.ts;
+      else if (p.type === 'out' && lastIn) {
+        const di = Math.min(6, Math.floor((lastIn - weekStart) / 86400000));
+        if (di >= 0) dayTotals[e.id][di] += (p.ts - lastIn) / 3600000;
+        lastIn = null;
       }
     });
   });
-  const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-  let csv='Employee,'+days.join(',')+',Total Hours\n';
-  EMPLOYEES.forEach(e=>csv+=`${e.name},${dt[e.id].map(h=>h.toFixed(2)).join(',')},${eh[e.id].toFixed(2)}\n`);
-  csv+=`Total,${Array(7).fill(0).map((_,di)=>EMPLOYEES.reduce((s,e)=>s+dt[e.id][di],0).toFixed(2)).join(',')},${EMPLOYEES.reduce((s,e)=>s+eh[e.id],0).toFixed(2)}\n\nDetailed punch log\nEmployee,Date,Time,Type\n`;
-  wp.sort((a,b)=>a.ts-b.ts).forEach(p=>{
-    const emp=EMPLOYEES.find(e=>e.id===p.empId),d=new Date(p.ts);
-    csv+=`${emp?emp.name:'Unknown'},${fmtDate(d)},${fmt(d)},${p.type==='in'?'Clock In':'Clock Out'}\n`;
+  let csv = 'Employee,' + days.join(',') + ',Total Hours\n';
+  EMPLOYEES.forEach(e => {
+    const row = [e.name, ...dayTotals[e.id].map(h => h.toFixed(2)), empHours[e.id].toFixed(2)];
+    csv += row.join(',') + '\n';
   });
-  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
-  a.download=`timeclock_week_${val}.csv`;a.click();
+  const totals = ['Total', ...Array(7).fill(0).map((_,di) => EMPLOYEES.reduce((s,e) => s+dayTotals[e.id][di],0).toFixed(2)), EMPLOYEES.reduce((s,e) => s+empHours[e.id],0).toFixed(2)];
+  csv += totals.join(',') + '\n\n';
+  csv += 'Detailed punch log\nEmployee,Date,Time,Type\n';
+  weekPunches.sort((a,b) => a.ts - b.ts).forEach(p => {
+    const emp = EMPLOYEES.find(e => e.id === p.empId);
+    const d = new Date(p.ts);
+    csv += `${emp ? emp.name : 'Unknown'},${fmtDate(d)},${fmt(d)},${p.type === 'in' ? 'Clock In' : 'Clock Out'}\n`;
+  });
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `timeclock_week_${val}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
-function exportText(){
-  const val=document.getElementById('report-week-start').value;if(!val)return;
-  const ws=new Date(val+'T00:00:00'),we=new Date(ws);we.setDate(ws.getDate()+7);
-  const wp=punches.filter(p=>{const d=new Date(p.ts);return d>=ws&&d<we});
-  const eh={};EMPLOYEES.forEach(e=>{eh[e.id]=0});
-  EMPLOYEES.forEach(e=>{
-    const ep=wp.filter(p=>p.empId===e.id).sort((a,b)=>a.ts-b.ts);let li=null;
-    ep.forEach(p=>{if(p.type==='in')li=p.ts;else if(p.type==='out'&&li){eh[e.id]+=(p.ts-li)/3600000;li=null}});
+function exportText() {
+  const val = document.getElementById('report-week-start').value;
+  if (!val) return;
+  const weekStart = new Date(val + 'T00:00:00');
+  const weekEnd = new Date(weekStart); weekEnd.setDate(weekStart.getDate() + 7);
+  const weekPunches = punches.filter(p => { const d = new Date(p.ts); return d >= weekStart && d < weekEnd; });
+  const empHours = {};
+  EMPLOYEES.forEach(e => { empHours[e.id] = 0; });
+  EMPLOYEES.forEach(e => {
+    const ep = weekPunches.filter(p => p.empId === e.id).sort((a,b) => a.ts - b.ts);
+    let lastIn = null;
+    ep.forEach(p => {
+      if (p.type === 'in') lastIn = p.ts;
+      else if (p.type === 'out' && lastIn) { empHours[e.id] += (p.ts - lastIn) / 3600000; lastIn = null; }
+    });
   });
-  let txt=`Royal Bodies & Repair — Weekly Hours\nWeek of ${new Date(val+'T00:00:00').toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}\n\n`;
-  EMPLOYEES.forEach(e=>txt+=`${e.name}: ${eh[e.id].toFixed(2)} hrs\n`);
-  txt+=`\nTotal: ${EMPLOYEES.reduce((s,e)=>s+eh[e.id],0).toFixed(2)} hrs`;
-  navigator.clipboard.writeText(txt).then(()=>alert('Copied!')).catch(()=>alert(txt));
+  let txt = `Royal Bodies & Repair — Weekly Hours\nWeek of ${new Date(val+'T00:00:00').toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}\n\n`;
+  EMPLOYEES.forEach(e => { txt += `${e.name}: ${empHours[e.id].toFixed(2)} hrs\n`; });
+  txt += `\nTotal: ${EMPLOYEES.reduce((s,e) => s+empHours[e.id],0).toFixed(2)} hrs`;
+  navigator.clipboard.writeText(txt).then(() => alert('Copied to clipboard!')).catch(() => alert(txt));
 }
 
-function renderEditLog(){
-  const list=document.getElementById('edit-log-list');
-  const sorted=[...punches].sort((a,b)=>b.ts-a.ts).slice(0,60);
-  if(!sorted.length){list.innerHTML='<p style="color:var(--color-text-secondary);font-size:13px;padding:12px 0">No punches recorded yet.</p>';return}
-  list.innerHTML=sorted.map(p=>{
-    const emp=EMPLOYEES.find(e=>e.id===p.empId),ri=punches.indexOf(p);
-    return`<div class="log-item">
-      <span class="log-name">${emp?emp.name:'Unknown'}</span>
+function renderEditLog() {
+  const list = document.getElementById('edit-log-list');
+  const sorted = [...punches].sort((a,b) => b.ts - a.ts).slice(0, 60);
+  if (!sorted.length) { list.innerHTML = '<p style="color:#9ca3af; font-size:13px; padding:12px 0;">No punches recorded yet.</p>'; return; }
+  list.innerHTML = sorted.map((p, i) => {
+    const emp = EMPLOYEES.find(e => e.id === p.empId);
+    const realIdx = punches.indexOf(p);
+    return `<div class="log-item">
+      <span class="log-name">${emp ? emp.name : 'Unknown'}</span>
       <span class="log-time">${fmtFull(p.ts)}</span>
-      <span class="log-badge ${p.type}">${p.type==='in'?'In':'Out'}</span>
-      <button class="btn danger sm" onclick="deletePunch(${ri})"><i class="ti ti-trash" aria-hidden="true"></i> Delete</button>
+      <span class="log-type ${p.type}">${p.type === 'in' ? 'In' : 'Out'}</span>
+      <button class="btn danger" style="padding:4px 10px; font-size:12px;" onclick="deletePunch(${realIdx})">Delete</button>
     </div>`;
   }).join('');
 }
 
-function deletePunch(idx){
-  if(!confirm('Delete this punch entry?'))return;
-  punches.splice(idx,1);savePunches();renderEditLog();buildReport();
+function deletePunch(idx) {
+  if (!confirm('Delete this punch entry?')) return;
+  punches.splice(idx, 1);
+  savePunches();
+  renderEditLog();
+  buildReport();
 }
 
-function renderSetup(){
-  document.getElementById('setup-list').innerHTML=EMPLOYEES.map(e=>{
-    const uid=nfcMap[e.id];
-    return`<div class="setup-row">
-      <div class="setup-name">${e.name}</div>
-      <div class="setup-nfc ${uid?'assigned'}">${uid||'No card assigned'}</div>
-      <button class="btn sm" onclick="startNFCScan('assign','${e.id}')"><i class="ti ti-credit-card" aria-hidden="true"></i> Assign</button>
-      ${uid?`<button class="btn danger sm" onclick="removeCard('${e.id}')"><i class="ti ti-x" aria-hidden="true"></i></button>`:''}
-      <button class="btn sm" style="background:var(--blue);color:white;border-color:var(--blue)" onclick="openManual('${e.id}')"><i class="ti ti-clock" aria-hidden="true"></i> Manual</button>
+function renderSetup() {
+  const list = document.getElementById('setup-list');
+  list.innerHTML = EMPLOYEES.map(e => {
+    const uid = nfcMap[e.id];
+    return `<div class="setup-row">
+      <div class="setup-emp-name">${e.name}</div>
+      <div class="setup-nfc ${uid ? 'assigned'}">${uid ? uid : 'No card assigned'}</div>
+      <button class="btn" onclick="startNFCScan('assign','${e.id}')">&#128179; Assign card</button>
+      ${uid ? `<button class="btn danger" onclick="removeCard('${e.id}')">Remove</button>` : ''}
+      <button class="btn" style="background:#1F4E79; color:white; border-color:#1F4E79;" onclick="openManualClock('${e.id}')">Manual punch</button>
     </div>`;
   }).join('');
 }
 
-function removeCard(empId){delete nfcMap[empId];saveNfc();renderSetup()}
-
-function openManual(empId){
-  manualEmpId=empId;
-  const emp=EMPLOYEES.find(e=>e.id===empId);
-  document.getElementById('manual-msg').textContent=`${emp.name} is currently clocked ${getStatus(empId)}. Choose action:`;
-  const now=new Date();
-  document.getElementById('manual-time').value=now.toTimeString().slice(0,5);
-  document.getElementById('manual-overlay').classList.add('show');
-}
-function closeManual(){document.getElementById('manual-overlay').classList.remove('show');manualEmpId=null}
-function manualPunch(type){
-  if(!manualEmpId)return;
-  const tv=document.getElementById('manual-time').value;
-  const d=new Date();const[h,m]=tv.split(':').map(Number);d.setHours(h,m,0,0);
-  punches.push({empId:manualEmpId,type,ts:d.getTime(),uid:'manual'});savePunches();closeManual();renderSetup();
+function removeCard(empId) {
+  delete nfcMap[empId];
+  saveNfc();
+  renderSetup();
 }
 
-function changePin(){
-  const np=document.getElementById('new-pin').value;
-  const el=document.getElementById('pin-change-status');
-  if(!/^\d{4}$/.test(np)){el.textContent='PIN must be exactly 4 digits.';el.style.color='var(--red)';return}
-  adminPin=np;savePin();document.getElementById('new-pin').value='';
-  el.textContent='PIN updated successfully.';el.style.color='var(--green)';
+function openManualClock(empId) {
+  manualEmpId = empId;
+  const emp = EMPLOYEES.find(e => e.id === empId);
+  const status = getEmployeeStatus(empId);
+  document.getElementById('manual-clock-msg').textContent = `${emp.name} is currently clocked ${status}. Choose action:`;
+  const now = new Date();
+  document.getElementById('manual-time-input').value = now.toTimeString().slice(0,5);
+  document.getElementById('manual-clock-modal').classList.add('show');
+}
+function closeManualModal() {
+  document.getElementById('manual-clock-modal').classList.remove('show');
+  manualEmpId = null;
+}
+function manualPunch(type) {
+  if (!manualEmpId) return;
+  const timeVal = document.getElementById('manual-time-input').value;
+  const today = new Date();
+  const [h, m] = timeVal.split(':').map(Number);
+  today.setHours(h, m, 0, 0);
+  punches.push({ empId: manualEmpId, type, ts: today.getTime(), uid: 'manual' });
+  savePunches();
+  closeManualModal();
+  renderSetup();
 }
 
-function confirmClearWeek(){
-  pendingConfirm=()=>{punches=[];savePunches();alert('All punch data cleared.')};
-  document.getElementById('confirm-title').textContent='Clear all punch data?';
-  document.getElementById('confirm-msg').textContent='This will delete all punch records. NFC card assignments will be kept. Make sure you have exported the CSV first.';
-  document.getElementById('confirm-overlay').classList.add('show');
+function changePin() {
+  const np = document.getElementById('new-pin').value;
+  if (!/^\d{4}$/.test(np)) {
+    document.getElementById('pin-change-status').textContent = 'PIN must be exactly 4 digits.';
+    document.getElementById('pin-change-status').style.color = '#c0392b';
+    return;
+  }
+  adminPin = np;
+  savePin();
+  document.getElementById('new-pin').value = '';
+  document.getElementById('pin-change-status').textContent = 'PIN updated successfully.';
+  document.getElementById('pin-change-status').style.color = '#1a7a4a';
 }
-function closeConfirm(){document.getElementById('confirm-overlay').classList.remove('show');pendingConfirm=null}
-function confirmAction(){if(pendingConfirm)pendingConfirm();closeConfirm()}
+
+function confirmClearWeek() {
+  const val = document.getElementById('report-week-start') ? document.getElementById('report-week-start').value : null;
+  let msg = 'This will delete all punch records. NFC card assignments will be kept. Make sure you have exported the CSV first.';
+  pendingConfirm = () => {
+    punches = [];
+    savePunches();
+    alert('All punch data cleared.');
+  };
+  document.getElementById('confirm-title').textContent = 'Clear all punch data?';
+  document.getElementById('confirm-msg').textContent = msg;
+  document.getElementById('confirm-modal').classList.add('show');
+}
+function closeConfirm() {
+  document.getElementById('confirm-modal').classList.remove('show');
+  pendingConfirm = null;
+}
+function confirmAction() {
+  if (pendingConfirm) pendingConfirm();
+  closeConfirm();
+}
 </script>
+</body>
+</html>
