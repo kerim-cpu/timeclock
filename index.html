@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1F4E79">
+<title>Royal Bodies & Repair Timeclock</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --blue:#1F4E79;--blue-mid:#2E75B6;--blue-light:#D6E4F0;--blue-pale:#EBF3FA;
+  --green:#1a7a4a;--green-light:#d4edda;--red:#c0392b;--red-light:#fce8e6;
+  --amber:#b45309;--amber-light:#fef3c7;
+  --bg:#f5f5f5;--surface:#ffffff;--border:#e5e5e5;
+  --text:#111827;--text-muted:#6b7280;--text-hint:#9ca3af;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+.app{display:flex;flex-direction:column;min-height:100vh;max-width:760px;margin:0 auto;width:100%;background:var(--surface)}
+header{background:var(--blue);color:white;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+header h1{font-size:17px;font-weight:600;letter-spacing:0.2px}
+.live-clock{font-size:12px;opacity:0.8;margin-top:2px;font-variant-numeric:tabular-nums}
+.admin-btn{background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:white;border-radius:8px;padding:7px 12px;font-size:12px;cursor:pointer}
+.admin-btn:hover{background:rgba(255,255,255,0.25)}
+nav{background:var(--surface);border-bottom:1px solid var(--border);display:flex;flex-shrink:0}
+nav button{flex:1;padding:11px 6px;border:none;background:none;font-size:12px;font-weight:500;color:var(--text-hint);cursor:pointer;border-bottom:2px solid transparent;transition:all 0.15s}
+nav button.active{color:var(--blue-mid);border-bottom-color:var(--blue-mid)}
+nav button:hover:not(.active){color:var(--text)}
+main{flex:1;padding:18px;overflow-y:auto}
+.page{display:none}.page.active{display:block}
+.card{background:var(--surface);border-radius:12px;border:1px solid var(--border);padding:18px;margin-bottom:14px}
+.card h2{font-size:14px;font-weight:600;color:var(--blue);margin-bottom:16px}
+
+/* Clock page - employee punch buttons */
+.emp-punch-list{display:flex;flex-direction:column;gap:10px}
+.emp-punch-row{display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:10px;border:1px solid var(--border);background:var(--bg)}
+.emp-punch-avatar{width:42px;height:42px;border-radius:50%;background:var(--blue-light);color:var(--blue);font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.emp-punch-info{flex:1;min-width:0}
+.emp-punch-name{font-size:14px;font-weight:500;color:var(--text)}
+.emp-punch-status{font-size:12px;margin-top:2px}
+.emp-punch-status.in{color:var(--green)}
+.emp-punch-status.out{color:var(--text-hint)}
+.punch-btn{padding:10px 20px;border-radius:8px;border:none;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.15s;flex-shrink:0}
+.punch-btn.clock-in{background:var(--green);color:white}
+.punch-btn.clock-in:hover{background:#155d38}
+.punch-btn.clock-in:active{transform:scale(0.97)}
+.punch-btn.clock-out{background:var(--red);color:white}
+.punch-btn.clock-out:hover{background:#a93226}
+.punch-btn.clock-out:active{transform:scale(0.97)}
+
+.status-banner{border-radius:8px;padding:12px 14px;font-size:14px;font-weight:500;margin-bottom:14px;display:none}
+.status-banner.show{display:block}
+.status-banner.success{background:var(--green-light);color:var(--green)}
+.status-banner.error{background:var(--red-light);color:var(--red)}
+.status-banner.info{background:var(--amber-light);color:var(--amber)}
+
+.emp-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.emp-card{background:var(--bg);border-radius:8px;border:1px solid var(--border);padding:12px;text-align:center}
+.emp-avatar{width:38px;height:38px;border-radius:50%;background:var(--blue-light);color:var(--blue);font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;margin:0 auto 8px}
+.emp-name{font-size:12px;font-weight:500;color:var(--text);line-height:1.3}
+.emp-badge{display:inline-block;margin-top:6px;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500}
+.emp-badge.in{background:var(--green-light);color:var(--green)}
+.emp-badge.out{background:var(--bg);color:var(--text-hint);border:1px solid var(--border)}
+
+.log-list{max-height:320px;overflow-y:auto}
+.log-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;gap:8px;flex-wrap:wrap}
+.log-item:last-child{border-bottom:none}
+.log-name{font-weight:500}
+.log-time{color:var(--text-muted);font-variant-numeric:tabular-nums}
+.log-badge{padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500}
+.log-badge.in{background:var(--green-light);color:var(--green)}
+.log-badge.out{background:var(--red-light);color:var(--red)}
+
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border-radius:8px;border:1px solid var(--border);background:var(--surface);font-size:12px;font-weight:500;cursor:pointer;color:var(--text);transition:background 0.12s}
+.btn:hover{background:var(--bg)}
+.btn.primary{background:var(--blue);color:white;border-color:var(--blue)}
+.btn.primary:hover{background:var(--blue-mid)}
+.btn.danger{color:var(--red);border-color:#f5b7b1}
+.btn.danger:hover{background:var(--red-light)}
+.btn.sm{padding:4px 9px;font-size:11px}
+
+.week-row{display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
+.week-row label{font-size:13px;color:var(--text-muted)}
+input[type=date],input[type=time]{border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:13px;background:var(--surface);color:var(--text)}
+
+.report-table{width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed}
+.report-table th{text-align:left;padding:8px;background:var(--blue);color:white;font-weight:500;font-size:11px}
+.report-table th:first-child{border-radius:6px 0 0 0}
+.report-table th:last-child{border-radius:0 6px 0 0}
+.report-table td{padding:7px 8px;border-bottom:1px solid var(--border)}
+.report-table tr:last-child td{border-bottom:none}
+.report-table tr:nth-child(even) td{background:var(--bg)}
+.report-table .total-row td{font-weight:600;background:var(--blue-pale);color:var(--blue)}
+
+.summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:10px;margin-bottom:14px}
+.summary-card{background:var(--bg);border-radius:8px;padding:12px;text-align:center}
+.summary-card .val{font-size:22px;font-weight:600;color:var(--blue)}
+.summary-card .lbl{font-size:11px;color:var(--text-hint);margin-top:2px}
+.export-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+
+.setup-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.setup-row:last-child{border-bottom:none}
+.setup-name{flex:1;font-size:13px;font-weight:500;min-width:130px}
+
+.overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.45);z-index:50;align-items:flex-start;justify-content:center;padding:40px 16px;overflow-y:auto}
+.overlay.show{display:flex}
+.modal{background:var(--surface);border-radius:12px;padding:22px;width:100%;max-width:400px;border:1px solid var(--border)}
+.modal h3{font-size:15px;font-weight:600;margin-bottom:8px}
+.modal p{font-size:13px;color:var(--text-muted);margin-bottom:14px;line-height:1.5}
+.modal-btns{display:flex;gap:10px;justify-content:flex-end}
+
+.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:240px;margin:0 auto 14px}
+.pin-btn{padding:14px;border:1px solid var(--border);border-radius:8px;background:var(--surface);font-size:18px;font-weight:500;cursor:pointer;color:var(--text)}
+.pin-btn:active{background:var(--bg)}
+.pin-display{text-align:center;font-size:26px;letter-spacing:8px;color:var(--blue);margin-bottom:14px;height:38px}
+input[type=password]{border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:14px;background:var(--surface);color:var(--text);width:160px}
+</style>
+</head>
+<body>
+<div class="app">
+
+<header>
+  <div>
+    <h1>&#9201; Royal Bodies &amp; Repair Timeclock</h1>
+    <div class="live-clock" id="live-clock"></div>
+  </div>
+  <button class="admin-btn" id="admin-btn" onclick="showAdminPin()">
+    &#9881; <span id="admin-label">Admin</span>
+  </button>
+</header>
+
+<nav>
+  <button class="active" onclick="showPage('clock',this)">&#9201; Clock</button>
+  <button onclick="showPage('status',this)">&#128101; Status</button>
+  <button onclick="showPage('log',this)">&#128203; Log</button>
+  <button class="admin-only" onclick="showPage('reports',this)" style="display:none">&#128202; Reports</button>
+  <button class="admin-only" onclick="showPage('setup',this)" style="display:none">&#9881; Setup</button>
+</nav>
+
+<main>
+
+<div id="page-clock" class="page active">
+  <div class="card">
+    <h2>&#9201; Clock in or out</h2>
+    <div class="status-banner" id="clock-status"></div>
+    <div class="emp-punch-list" id="punch-list"></div>
+  </div>
+</div>
+
+<div id="page-status" class="page">
+  <div class="card">
+    <h2>&#128101; Who's in right now</h2>
+    <div class="emp-grid" id="status-grid"></div>
+  </div>
+</div>
+
+<div id="page-log" class="page">
+  <div class="card">
+    <h2>&#128203; Today's activity</h2>
+    <div class="log-list" id="log-list"></div>
+  </div>
+</div>
+
+<div id="page-reports" class="page">
+  <div class="card">
+    <h2>&#128202; Weekly hours report</h2>
+    <div class="week-row">
+      <label>Week starting:</label>
+      <input type="date" id="report-week-start" onchange="buildReport()">
+      <button class="btn" onclick="setCurrentWeek()">This week</button>
+    </div>
+    <div class="summary-grid" id="report-summary"></div>
+    <div style="overflow-x:auto" id="report-table-wrap"></div>
+    <div class="export-row">
+      <button class="btn primary" onclick="exportCSV()">&#8659; Export CSV</button>
+      <button class="btn" onclick="exportText()">&#128221; Copy as text</button>
+    </div>
+  </div>
+  <div class="card">
+    <h2>&#128221; Edit / correct a punch</h2>
+    <p style="font-size:12px;color:#6b7280;margin-bottom:10px">Select an entry to delete or correct it.</p>
+    <div id="edit-log-list" class="log-list"></div>
+  </div>
+</div>
+
+<div id="page-setup" class="page">
+  <div class="card">
+    <h2>&#9881; Admin PIN</h2>
+    <p style="font-size:12px;color:#6b7280;margin-bottom:10px">Default PIN is 1234.</p>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <input type="password" id="new-pin" placeholder="New 4-digit PIN" maxlength="4">
+      <button class="btn primary" onclick="changePin()">Update PIN</button>
+    </div>
+    <div id="pin-change-status" style="font-size:12px;margin-top:8px"></div>
+  </div>
+  <div class="card">
+    <h2>&#128221; Manual punch</h2>
+    <p style="font-size:12px;color:#6b7280;margin-bottom:12px">Add or correct a punch for any employee.</p>
+    <div id="setup-list"></div>
+  </div>
+  <div class="card">
+    <h2 style="color:#c0392b">&#9888; Data management</h2>
+    <p style="font-size:12px;color:#6b7280;margin-bottom:10px">Clear all punch data after exporting. </p>
+    <button class="btn danger" onclick="confirmClearWeek()">&#128465; Clear all punches</button>
+  </div>
+</div>
+
+</main>
+
+<!-- PIN Modal -->
+<div class="overlay" id="pin-overlay">
+  <div class="modal">
+    <h3>Admin access</h3>
+    <p>Enter your PIN to access reports and settings.</p>
+    <div class="pin-display" id="pin-display">&#9679;&#9679;&#9679;&#9679;</div>
+    <div class="pin-pad">
+      <button class="pin-btn" onclick="pinPress('1')">1</button>
+      <button class="pin-btn" onclick="pinPress('2')">2</button>
+      <button class="pin-btn" onclick="pinPress('3')">3</button>
+      <button class="pin-btn" onclick="pinPress('4')">4</button>
+      <button class="pin-btn" onclick="pinPress('5')">5</button>
+      <button class="pin-btn" onclick="pinPress('6')">6</button>
+      <button class="pin-btn" onclick="pinPress('7')">7</button>
+      <button class="pin-btn" onclick="pinPress('8')">8</button>
+      <button class="pin-btn" onclick="pinPress('9')">9</button>
+      <button class="pin-btn" onclick="pinPress('clear')" style="font-size:12px;color:#c0392b">Clear</button>
+      <button class="pin-btn" onclick="pinPress('0')">0</button>
+      <button class="pin-btn" onclick="pinPress('back')" style="font-size:14px">&#9003;</button>
+    </div>
+    <div id="pin-error" style="color:#c0392b;font-size:12px;text-align:center;height:16px"></div>
+    <div class="modal-btns" style="margin-top:10px">
+      <button class="btn" onclick="closePinModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm Modal -->
+<div class="overlay" id="confirm-overlay">
+  <div class="modal">
+    <h3 id="confirm-title">Confirm</h3>
+    <p id="confirm-msg"></p>
+    <div class="modal-btns">
+      <button class="btn" onclick="closeConfirm()">Cancel</button>
+      <button class="btn danger" onclick="confirmAction()">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- Manual Clock Modal -->
+<div class="overlay" id="manual-overlay">
+  <div class="modal">
+    <h3>Manual clock in/out</h3>
+    <p id="manual-msg"></p>
+    <div style="margin-bottom:14px">
+      <label style="font-size:12px;color:#6b7280;display:block;margin-bottom:6px">Time (defaults to now)</label>
+      <input type="time" id="manual-time">
+    </div>
+    <div class="modal-btns">
+      <button class="btn" onclick="closeManual()">Cancel</button>
+      <button class="btn primary" onclick="manualPunch('in')">Clock in</button>
+      <button class="btn danger" onclick="manualPunch('out')">Clock out</button>
+    </div>
+  </div>
+</div>
+
+</div>
+<script>
+const EMPLOYEES=[
+  {id:'emp1',name:'Steven W. Mansbart',initials:'SW'},
+  {id:'emp2',name:'Steven J. Mansbart',initials:'SJ'},
+  {id:'emp3',name:'Jeremy Molody',initials:'JM'},
+  {id:'emp4',name:'Keri Mansbart',initials:'KM'},
+  {id:'emp5',name:'Herman Mansbart',initials:'HM'},
+];
+const mem={};
+function load(k,def){try{const v=localStorage.getItem(k);return v?JSON.parse(v):(mem[k]!==undefined?mem[k]:def)}catch(e){return mem[k]!==undefined?mem[k]:def}}
+function save(k,v){mem[k]=v;try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+let punches=load('tc_punches',[]);
+let adminPin=load('tc_pin','1234');
+let isAdmin=false;
+let pendingConfirm=null,pinEntry='',manualEmpId=null;
+function savePunches(){save('tc_punches',punches)}
+function savePin(){save('tc_pin',adminPin)}
+function fmt(d){return d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:true})}
+function fmtDate(d){return d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})}
+function fmtFull(ts){const d=new Date(ts);return fmtDate(d)+' '+fmt(d)}
+function updateClock(){
+  document.getElementById('live-clock').textContent=new Date().toLocaleString('en-US',{weekday:'short',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:true});
+}
+setInterval(updateClock,1000);updateClock();
+
+function showPage(name,btn){
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active')});
+  document.querySelectorAll('nav button').forEach(function(b){b.classList.remove('active')});
+  document.getElementById('page-'+name).classList.add('active');
+  if(btn)btn.classList.add('active');
+  if(name==='clock')renderPunchList();
+  if(name==='status')renderStatus();
+  if(name==='log')renderLog();
+  if(name==='reports'){setCurrentWeek();buildReport();renderEditLog()}
+  if(name==='setup')renderSetup();
+}
+
+function getStatus(empId){
+  const ep=punches.filter(function(p){return p.empId===empId}).sort(function(a,b){return a.ts-b.ts});
+  if(!ep.length)return 'out';
+  return ep[ep.length-1].type==='in'?'in':'out';
+}
+
+function punchEmployee(empId){
+  const emp=EMPLOYEES.find(function(e){return e.id===empId});
+  const newType=getStatus(empId)==='in'?'out':'in';
+  const now=Date.now();
+  punches.push({empId:empId,type:newType,ts:now});
+  savePunches();
+  const msg=newType==='in'
+    ?'Welcome, '+emp.name+'! Clocked in at '+fmt(new Date(now))+'.'
+    :'Goodbye, '+emp.name+'! Clocked out at '+fmt(new Date(now))+'.';
+  showBanner('clock-status',msg,newType==='in'?'success':'info');
+  renderPunchList();
+}
+
+function renderPunchList(){
+  const list=document.getElementById('punch-list');
+  list.innerHTML=EMPLOYEES.map(function(e){
+    const s=getStatus(e.id);
+    const btnClass=s==='in'?'clock-out':'clock-in';
+    const btnLabel=s==='in'?'Clock out':'Clock in';
+    const statusLabel=s==='in'?'Clocked in':'Clocked out';
+    return'<div class="emp-punch-row">'+
+      '<div class="emp-punch-avatar">'+e.initials+'</div>'+
+      '<div class="emp-punch-info">'+
+        '<div class="emp-punch-name">'+e.name+'</div>'+
+        '<div class="emp-punch-status '+s+'">'+statusLabel+'</div>'+
+      '</div>'+
+      '<button class="punch-btn '+btnClass+'" onclick="punchEmployee(\''+e.id+'\')">'+btnLabel+'</button>'+
+    '</div>';
+  }).join('');
+}
+
+function renderStatus(){
+  document.getElementById('status-grid').innerHTML=EMPLOYEES.map(function(e){
+    const s=getStatus(e.id);
+    return'<div class="emp-card"><div class="emp-avatar">'+e.initials+'</div><div class="emp-name">'+e.name+'</div><span class="emp-badge '+s+'">'+(s==='in'?'Clocked in':'Clocked out')+'</span></div>';
+  }).join('');
+}
+
+function renderLog(){
+  const today=new Date();today.setHours(0,0,0,0);
+  const tp=punches.filter(function(p){return new Date(p.ts)>=today}).sort(function(a,b){return b.ts-a.ts});
+  const el=document.getElementById('log-list');
+  if(!tp.length){el.innerHTML='<p style="color:#9ca3af;font-size:13px;padding:12px 0">No activity today.</p>';return}
+  el.innerHTML=tp.map(function(p){
+    const emp=EMPLOYEES.find(function(e){return e.id===p.empId});
+    return'<div class="log-item"><span class="log-name">'+(emp?emp.name:'Unknown')+'</span><span class="log-time">'+fmt(new Date(p.ts))+'</span><span class="log-badge '+p.type+'">'+(p.type==='in'?'Clock in':'Clock out')+'</span></div>';
+  }).join('');
+}
+
+function showBanner(id,msg,type){
+  const el=document.getElementById(id);if(!el)return;
+  el.textContent=msg;el.className='status-banner show '+type;
+  clearTimeout(el._t);el._t=setTimeout(function(){el.classList.remove('show')},5000);
+}
+
+function showAdminPin(){
+  if(isAdmin){toggleAdminUI(false);return}
+  pinEntry='';
+  document.getElementById('pin-display').innerHTML='&#9679;&#9679;&#9679;&#9679;';
+  document.getElementById('pin-error').textContent='';
+  document.getElementById('pin-overlay').classList.add('show');
+}
+function closePinModal(){document.getElementById('pin-overlay').classList.remove('show');pinEntry=''}
+function pinPress(val){
+  if(val==='clear')pinEntry='';
+  else if(val==='back')pinEntry=pinEntry.slice(0,-1);
+  else if(pinEntry.length<4)pinEntry+=val;
+  const d=pinEntry.length,e=4-d;
+  document.getElementById('pin-display').innerHTML='&#9679;'.repeat(d)+'<span style="opacity:0.2">&#9679;</span>'.repeat(e);
+  if(pinEntry.length===4){
+    if(pinEntry===adminPin){closePinModal();toggleAdminUI(true)}
+    else{
+      document.getElementById('pin-error').textContent='Incorrect PIN. Try again.';
+      setTimeout(function(){pinEntry='';document.getElementById('pin-display').innerHTML='<span style="opacity:0.2">&#9679;&#9679;&#9679;&#9679;</span>';document.getElementById('pin-error').textContent=''},1000);
+    }
+  }
+}
+function toggleAdminUI(on){
+  isAdmin=on;
+  document.querySelectorAll('.admin-only').forEach(function(el){el.style.display=on?'':'none'});
+  document.getElementById('admin-label').textContent=on?'Exit admin':'Admin';
+  document.getElementById('admin-btn').style.background=on?'rgba(255,200,100,0.3)':'rgba(255,255,255,0.15)';
+}
+
+function getMondayOf(d){
+  const day=d.getDay(),diff=day===0?-6:1-day,mon=new Date(d);
+  mon.setDate(d.getDate()+diff);mon.setHours(0,0,0,0);return mon;
+}
+function setCurrentWeek(){
+  const mon=getMondayOf(new Date());
+  document.getElementById('report-week-start').value=mon.toISOString().slice(0,10);
+  buildReport();
+}
+function buildReport(){
+  const val=document.getElementById('report-week-start').value;if(!val)return;
+  const ws=new Date(val+'T00:00:00'),we=new Date(ws);we.setDate(ws.getDate()+7);
+  const wp=punches.filter(function(p){const d=new Date(p.ts);return d>=ws&&d<we});
+  const eh={},dt={};
+  EMPLOYEES.forEach(function(e){eh[e.id]=0;dt[e.id]=[0,0,0,0,0,0,0]});
+  EMPLOYEES.forEach(function(e){
+    const ep=wp.filter(function(p){return p.empId===e.id}).sort(function(a,b){return a.ts-b.ts});
+    var li=null;
+    ep.forEach(function(p){
+      if(p.type==='in')li=p.ts;
+      else if(p.type==='out'&&li!==null){
+        const h=(p.ts-li)/3600000;eh[e.id]+=h;
+        const di=Math.min(6,Math.floor((li-ws)/86400000));if(di>=0)dt[e.id][di]+=h;
+        li=null;
+      }
+    });
+  });
+  const total=Object.values(eh).reduce(function(a,b){return a+b},0);
+  const active=EMPLOYEES.filter(function(e){return eh[e.id]>0}).length;
+  document.getElementById('report-summary').innerHTML=
+    '<div class="summary-card"><div class="val">'+total.toFixed(1)+'</div><div class="lbl">Total hours</div></div>'+
+    '<div class="summary-card"><div class="val">'+active+'</div><div class="lbl">Active employees</div></div>'+
+    '<div class="summary-card"><div class="val">'+wp.length+'</div><div class="lbl">Total punches</div></div>';
+  const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  let rows='';
+  EMPLOYEES.forEach(function(e){
+    const cells=dt[e.id].map(function(h){return h>0?h.toFixed(1):'-'}).join('</td><td>');
+    rows+='<tr><td style="font-weight:500">'+e.name+'</td><td>'+cells+'</td><td style="font-weight:600;color:#1F4E79">'+eh[e.id].toFixed(1)+'</td></tr>';
+  });
+  let footCells='';
+  for(var di=0;di<7;di++){
+    const s=EMPLOYEES.reduce(function(a,e){return a+dt[e.id][di]},0);
+    footCells+='<td>'+(s>0?s.toFixed(1):'-')+'</td>';
+  }
+  document.getElementById('report-table-wrap').innerHTML=
+    '<table class="report-table" style="min-width:500px"><thead><tr><th style="width:150px">Employee</th>'+
+    days.map(function(d){return'<th>'+d+'</th>'}).join('')+'<th>Total</th></tr></thead>'+
+    '<tbody>'+rows+'</tbody>'+
+    '<tfoot><tr class="total-row"><td>Total</td>'+footCells+'<td>'+total.toFixed(1)+'</td></tr></tfoot></table>';
+}
+function exportCSV(){
+  const val=document.getElementById('report-week-start').value;if(!val)return;
+  const ws=new Date(val+'T00:00:00'),we=new Date(ws);we.setDate(ws.getDate()+7);
+  const wp=punches.filter(function(p){const d=new Date(p.ts);return d>=ws&&d<we});
+  const eh={},dt={};
+  EMPLOYEES.forEach(function(e){eh[e.id]=0;dt[e.id]=[0,0,0,0,0,0,0]});
+  EMPLOYEES.forEach(function(e){
+    const ep=wp.filter(function(p){return p.empId===e.id}).sort(function(a,b){return a.ts-b.ts});
+    var li=null;
+    ep.forEach(function(p){
+      if(p.type==='in')li=p.ts;
+      else if(p.type==='out'&&li){
+        const h=(p.ts-li)/3600000;eh[e.id]+=h;
+        const di=Math.min(6,Math.floor((li-ws)/86400000));if(di>=0)dt[e.id][di]+=h;li=null;
+      }
+    });
+  });
+  const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  let csv='Employee,'+days.join(',')+',Total Hours\n';
+  EMPLOYEES.forEach(function(e){
+    csv+=e.name+','+dt[e.id].map(function(h){return h.toFixed(2)}).join(',')+','+eh[e.id].toFixed(2)+'\n';
+  });
+  const totH=EMPLOYEES.reduce(function(s,e){return s+eh[e.id]},0);
+  const totD=days.map(function(_,di){return EMPLOYEES.reduce(function(s,e){return s+dt[e.id][di]},0).toFixed(2)});
+  csv+='Total,'+totD.join(',')+','+totH.toFixed(2)+'\n\nDetailed punch log\nEmployee,Date,Time,Type\n';
+  wp.sort(function(a,b){return a.ts-b.ts}).forEach(function(p){
+    const emp=EMPLOYEES.find(function(e){return e.id===p.empId});
+    const d=new Date(p.ts);
+    csv+=(emp?emp.name:'Unknown')+','+fmtDate(d)+','+fmt(d)+','+(p.type==='in'?'Clock In':'Clock Out')+'\n';
+  });
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download='timeclock_week_'+val+'.csv';a.click();
+}
+function exportText(){
+  const val=document.getElementById('report-week-start').value;if(!val)return;
+  const ws=new Date(val+'T00:00:00'),we=new Date(ws);we.setDate(ws.getDate()+7);
+  const wp=punches.filter(function(p){const d=new Date(p.ts);return d>=ws&&d<we});
+  const eh={};EMPLOYEES.forEach(function(e){eh[e.id]=0});
+  EMPLOYEES.forEach(function(e){
+    const ep=wp.filter(function(p){return p.empId===e.id}).sort(function(a,b){return a.ts-b.ts});
+    var li=null;
+    ep.forEach(function(p){if(p.type==='in')li=p.ts;else if(p.type==='out'&&li){eh[e.id]+=(p.ts-li)/3600000;li=null}});
+  });
+  let txt='Royal Bodies & Repair - Weekly Hours\nWeek of '+new Date(val+'T00:00:00').toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})+'\n\n';
+  EMPLOYEES.forEach(function(e){txt+=e.name+': '+eh[e.id].toFixed(2)+' hrs\n'});
+  txt+='\nTotal: '+EMPLOYEES.reduce(function(s,e){return s+eh[e.id]},0).toFixed(2)+' hrs';
+  navigator.clipboard.writeText(txt).then(function(){alert('Copied!')}).catch(function(){alert(txt)});
+}
+function renderEditLog(){
+  const list=document.getElementById('edit-log-list');
+  const sorted=punches.slice().sort(function(a,b){return b.ts-a.ts}).slice(0,60);
+  if(!sorted.length){list.innerHTML='<p style="color:#9ca3af;font-size:13px;padding:12px 0">No punches recorded yet.</p>';return}
+  list.innerHTML=sorted.map(function(p){
+    const emp=EMPLOYEES.find(function(e){return e.id===p.empId});
+    const ri=punches.indexOf(p);
+    return'<div class="log-item"><span class="log-name">'+(emp?emp.name:'Unknown')+'</span><span class="log-time">'+fmtFull(p.ts)+'</span><span class="log-badge '+p.type+'">'+(p.type==='in'?'In':'Out')+'</span><button class="btn danger sm" onclick="deletePunch('+ri+')">Delete</button></div>';
+  }).join('');
+}
+function deletePunch(idx){
+  if(!confirm('Delete this punch entry?'))return;
+  punches.splice(idx,1);savePunches();renderEditLog();buildReport();
+}
+function renderSetup(){
+  document.getElementById('setup-list').innerHTML=EMPLOYEES.map(function(e){
+    return'<div class="setup-row"><div class="setup-name">'+e.name+'</div>'+
+      '<button class="btn sm" style="background:#1F4E79;color:white;border-color:#1F4E79" onclick="openManual(\''+e.id+'\')">&#9201; Manual punch</button></div>';
+  }).join('');
+}
+function openManual(empId){
+  manualEmpId=empId;
+  const emp=EMPLOYEES.find(function(e){return e.id===empId});
+  document.getElementById('manual-msg').textContent=emp.name+' is currently clocked '+getStatus(empId)+'. Choose action:';
+  const now=new Date();
+  document.getElementById('manual-time').value=now.toTimeString().slice(0,5);
+  document.getElementById('manual-overlay').classList.add('show');
+}
+function closeManual(){document.getElementById('manual-overlay').classList.remove('show');manualEmpId=null}
+function manualPunch(type){
+  if(!manualEmpId)return;
+  const tv=document.getElementById('manual-time').value;
+  const d=new Date();const parts=tv.split(':');d.setHours(parseInt(parts[0]),parseInt(parts[1]),0,0);
+  punches.push({empId:manualEmpId,type:type,ts:d.getTime()});savePunches();closeManual();renderSetup();
+}
+function changePin(){
+  const np=document.getElementById('new-pin').value;
+  const el=document.getElementById('pin-change-status');
+  if(!/^\d{4}$/.test(np)){el.textContent='PIN must be exactly 4 digits.';el.style.color='#c0392b';return}
+  adminPin=np;savePin();document.getElementById('new-pin').value='';
+  el.textContent='PIN updated successfully.';el.style.color='#1a7a4a';
+}
+function confirmClearWeek(){
+  pendingConfirm=function(){punches=[];savePunches();alert('All punch data cleared.')};
+  document.getElementById('confirm-title').textContent='Clear all punch data?';
+  document.getElementById('confirm-msg').textContent='This will delete all punch records. Make sure you have exported the CSV first.';
+  document.getElementById('confirm-overlay').classList.add('show');
+}
+function closeConfirm(){document.getElementById('confirm-overlay').classList.remove('show');pendingConfirm=null}
+function confirmAction(){if(pendingConfirm)pendingConfirm();closeConfirm()}
+
+// Init
+renderPunchList();
+</script>
+</body>
+</html>
